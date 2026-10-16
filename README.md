@@ -6,7 +6,7 @@ TreeScan reads a published tree figure (PNG, JPEG, WebP, screenshot, PDF page) o
 
 TreeScan is a single HTML file. It needs no installation and no server, and runs in any modern browser.
 
-TreeScan was created with assistance from AI coding tools; always perform independent verification of outputs.
+TreeScan was created with AI coding tools; always perform independent verification of outputs.
 
 ---
 
