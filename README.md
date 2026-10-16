@@ -1,10 +1,12 @@
-# Treescan
+# TreeScan
 
 **Turn images and PDFs of phylogenetic trees into editable tree files, and compare two trees as a tanglegram, all in the browser.**
 
-Treescan reads a published tree figure (PNG, JPEG, WebP, screenshot or PDF page) and reconstructs the tree, including taxon names, branch lengths and support values. You can then edit it and export it in standard formats (Newick, NEXUS, PhyloXML) that other phylogenetics programs can open. A second workspace draws **tanglegrams** for co-phylogenetic comparisons, such as host–symbiont, host–parasite or gene–species trees, and rotates branches to minimise crossing links.
+TreeScan reads a published tree figure (PNG, JPEG, WebP, screenshot or PDF page) or standard tree file formats (Newick, NEXUS, PhyloXML)and reconstructs the tree, including taxon names, branch lengths and support values. You can then edit it and export it in standard formats (Newick, NEXUS, PhyloXML) that other phylogenetics programs can open. A second workspace draws **tanglegrams** for co-phylogenetic comparisons, such as host–symbiont, host–parasite or gene–species trees, and rotates branches to minimise crossing links.
 
-Treescan is a single HTML file. It needs no installation and no server, and runs in any modern browser.
+TreeScan is a single HTML file. It needs no installation and no server, and runs in any modern browser.
+
+TreeScan was created with assistance from AI coding tools; always perform independent verification of outputs.
 
 ---
 
@@ -69,7 +71,7 @@ Treescan is a single HTML file. It needs no installation and no server, and runs
 
 An internet connection is needed the first time, to load the OCR and PDF libraries from public CDNs. A sample figure and its tree are loaded on start-up so you can try the tool straight away.
 
-> **Note:** the **Claude** and **Hybrid** readers only work when Treescan is opened as an artifact on [claude.ai](https://claude.ai). They then use the viewer's own Claude account. The standalone HTML file uses the **Local** reader.
+> **Note:** the **Claude** and **Hybrid** readers only work when TreeScan is opened as an artifact on [claude.ai](https://claude.ai). They then use the viewer's own Claude account. The standalone HTML file uses the **Local** reader.
 
 ---
 
@@ -156,7 +158,7 @@ Switch to the **Tanglegram** tab in the top bar.
 
 Benchmark on random tree pairs with conflicting branches added and about 20% of taxa linked twice (mean of 5 runs):
 
-| Taxa | Crossings at start | Barycentre + flips | Treescan | Time |
+| Taxa | Crossings at start | Barycentre + flips | TreeScan | Time |
 |---:|---:|---:|---:|---:|
 | 30 | 315 | 12.4 | 6.2 | 0.02 s |
 | 100 | 3,472 | 409 | 304 | 0.1 s |
@@ -271,13 +273,13 @@ Loaded at run time from public CDNs (cdn.jsdelivr.net, cdnjs.cloudflare.com):
 
 ## Citation
 
-If Treescan helps your work, please cite this repository:
+If TreeScan helps your work, please cite this repository:
 
 ```
-Kwong Lab (2026). Treescan: reading phylogenetic tree figures and drawing tanglegrams in the browser.
+Kwong Lab (2026). TreeScan: reading phylogenetic tree figures and drawing tanglegrams in the browser.
 GitHub repository: https://github.com/<your-account>/treescan
 ```
 
 ## License
 
-Add a `LICENSE` file before publishing (MIT or Apache-2.0 are common choices for scientific software). Third-party components keep their own licenses, listed above.
+See LICENSE.txt
