@@ -1,0 +1,24 @@
+{
+  "name": "treescan",
+  "version": "1.0.0",
+  "description": "Read phylogenetic tree figures into tree files, edit trees, and draw tanglegrams in the browser.",
+  "private": true,
+  "scripts": {
+    "build": "python3 build.py",
+    "build:hosted": "python3 build.py --hosted",
+    "test": "node test/core.test.js && node test/tangle.test.js && node test/onesided.test.js",
+    "test:engine": "node test/engine.test.js",
+    "bench": "node test/untangle.bench.js",
+    "fixtures": "python3 scripts/make_fixtures.py test/fixtures"
+  },
+  "devDependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
+    "pdfjs-dist": "3.11.174",
+    "playwright": "1.56.1",
+    "tesseract.js": "5.1.1",
+    "tesseract.js-core": "5.1.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

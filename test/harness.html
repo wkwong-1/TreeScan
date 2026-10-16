@@ -1,0 +1,40 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Treescan engine harness</title>
+<!-- Served from the repository root by test/engine.test.js; loads the sources and libraries from node_modules. -->
+<script>
+  window.TREESCAN_TESS_CONFIG = {
+    workerPath: "/node_modules/tesseract.js/dist/worker.min.js",
+    corePath: "/node_modules/tesseract.js-core/",
+    langPath: "/node_modules/@tesseract.js-data/eng/4.0.0_best_int",
+    workerBlobURL: false, cacheMethod: "none", gzip: true,
+  };
+</script>
+<script src="/node_modules/tesseract.js/dist/tesseract.min.js"></script>
+<script src="/node_modules/pdfjs-dist/build/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = "/node_modules/pdfjs-dist/build/pdf.worker.min.js";</script>
+<script src="/src/core.js"></script>
+<script src="/src/engine.js"></script>
+<script src="/src/ocr.js"></script>
+<script src="/src/pdf.js"></script>
+<script>
+  // same preprocessing as the app: white background, longest side at most 3200 px
+  async function loadImage(url) {
+    const im = new Image(); im.src = url; await im.decode();
+    const k = Math.min(1, 3200 / Math.max(im.width, im.height));
+    const c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+    return { img: x.getImageData(0, 0, c.width, c.height), k };
+  }
+  window.readFigure = async (file, opts) => {
+    let img, words = null;
+    if (file.endsWith(".pdf")) {
+      const doc = await PDFIn.open(await (await fetch(file)).blob());
+      const r = await PDFIn.render(doc, 1);
+      img = r.canvas.getContext("2d").getImageData(0, 0, r.canvas.width, r.canvas.height);
+      words = r.words;
+    } else img = (await loadImage(file)).img;
+    const res = await Engine.read(img, Object.assign({ words }, opts), OCR.recognize, () => {});
+    return { newick: Tree.toNewick(res.tree), warnings: res.warnings };
+  };
+</script>

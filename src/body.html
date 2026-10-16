@@ -1,0 +1,254 @@
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4M7 5v14M7 5h6M7 19h9M13 5V2.5M13 5v4M13 2.5h7M13 9h5"/></svg>
+      Treescan <small>tree figures → tree files</small>
+    </div>
+    <div class="seg" id="segMode" role="tablist" aria-label="Workspace">
+      <button data-v="edit" aria-pressed="true" role="tab">Read &amp; edit</button>
+      <button data-v="tangle" aria-pressed="false" role="tab">Tanglegram</button>
+    </div>
+    <button class="btn" id="bOpenImg" title="Open an image or PDF of a tree (or paste / drop one)">Open image or PDF</button>
+    <button class="btn" id="bOpenTree" title="Open a Newick, NEXUS or PhyloXML file">Open tree file</button>
+    <button class="btn" id="bPaste">Paste Newick</button>
+    <span class="grow"></span>
+    <button class="btn ghost" id="bUndo" disabled title="Undo (Ctrl+Z)">Undo</button>
+    <button class="btn ghost" id="bRedo" disabled title="Redo (Ctrl+Shift+Z)">Redo</button>
+    <button class="btn primary" id="bExport" disabled>Export</button>
+    <input type="file" id="fImg" accept="image/*,application/pdf,.pdf" hidden>
+    <input type="file" id="fTree" accept=".nwk,.newick,.tre,.tree,.treefile,.nex,.nexus,.nxs,.xml,.phyloxml,.txt,.contree,.ph,.phb,.dnd,.phy" hidden>
+  </header>
+
+  <div class="work" id="workEdit">
+    <aside class="col side left">
+      <section class="sec">
+        <h2>Source figure</h2>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose or drop a tree image">
+          <div id="dropMsg"><b>Drop, paste or choose a figure</b><p class="hint">PNG, JPEG, WebP, a screenshot, or a PDF page</p></div>
+        </div>
+        <div class="row" id="pdfRow" hidden><label for="nPage">PDF page</label><input type="number" id="nPage" min="1" value="1" style="width:70px"><span class="hint" id="pdfInfo"></span></div>
+        <div class="row" id="ovRow" hidden>
+          <label class="ck"><input type="checkbox" id="cOverlay" checked> Show traced lines</label>
+          <span class="grow"></span>
+          <button class="btn sm ghost" id="bClear">Remove image</button>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2>Read the tree</h2>
+        <div class="row"><label>Reader</label>
+          <div class="seg" id="segEngine">
+            <button data-v="hybrid" aria-pressed="true" title="Claude reads labels and topology; traced lines give exact lengths">Hybrid</button>
+            <button data-v="claude" aria-pressed="false">Claude</button>
+            <button data-v="local" aria-pressed="false" title="Runs entirely in your browser">Local</button>
+          </div>
+        </div>
+        <div class="row"><label for="sLayout">Layout</label>
+          <select id="sLayout"><option value="auto">Detect</option><option value="rectangular">Rectangular phylogram</option><option value="cladogram">Cladogram (no lengths)</option><option value="circular">Circular / fan</option><option value="unrooted">Unrooted radial (Claude only)</option></select>
+        </div>
+        <div class="row"><label for="sRoot">Root side</label>
+          <select id="sRoot"><option value="auto">Detect</option><option value="left">Left</option><option value="right">Right</option><option value="top">Top</option><option value="bottom">Bottom</option></select>
+        </div>
+        <div class="row" id="centerRow" hidden><label>Centre</label><button class="btn sm" id="bCenter">Click the centre on the image</button><span class="chip" id="centerVal">auto</span></div>
+        <div class="row" id="tierRow"><label for="sTier">Claude</label>
+          <select id="sTier"><option value="complex">Most careful</option><option value="default">Balanced</option><option value="quick">Fast</option></select>
+        </div>
+        <div class="row"><input type="text" id="tNote" placeholder="Optional note for Claude, e.g. “support = SH-aLRT/UFBoot”" style="flex:1"></div>
+        <div class="row"><button class="btn primary" id="bRead" disabled>Read tree</button><button class="btn" id="bStop" hidden>Stop</button></div>
+        <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        <div class="status" id="status" role="status"></div>
+        <ul class="notes" id="notes"></ul>
+        <p class="hint" id="engineHint"></p>
+      </section>
+    </aside>
+
+    <main class="col mid">
+      <div class="viewbar">
+        <div class="seg" id="segView">
+          <button data-v="rect" aria-pressed="true">Phylogram</button>
+          <button data-v="clado" aria-pressed="false">Cladogram</button>
+          <button data-v="circ" aria-pressed="false">Circular</button>
+        </div>
+        <span class="sep"></span>
+        <label class="ck"><input type="checkbox" id="cSup" checked> Support</label>
+        <label class="ck"><input type="checkbox" id="cLen"> Lengths</label>
+        <label class="ck"><input type="checkbox" id="cNodes"> Nodes</label>
+        <span class="sep"></span>
+        <label class="ck">Text <input type="range" id="rFont" min="8" max="20" value="13" style="width:70px"></label>
+        <label class="ck">Spread <input type="range" id="rZoom" min="40" max="300" value="100" style="width:70px"></label>
+        <span class="grow"></span>
+        <input type="text" id="tFind" placeholder="Find taxon" style="width:130px">
+      </div>
+      <div class="canvas" id="canvas">
+        <div class="empty" id="empty"><div><b>No tree yet</b>Open a figure and press <em>Read tree</em>, or open a Newick / NEXUS file. A sample figure is loaded below so you can try it.</div></div>
+      </div>
+    </main>
+
+    <aside class="col side right">
+      <section class="sec insp" id="insp">
+        <h2>Selection</h2>
+        <p class="hint" id="selHint">Click a branch, node or taxon. Shift-click taxa to pick an outgroup.</p>
+        <div class="kv" id="selForm" hidden>
+          <label for="iName">Name</label><input type="text" id="iName">
+          <label for="iLen">Branch length</label><input type="number" id="iLen" step="any">
+          <label for="iSup">Support</label><input type="text" id="iSup">
+        </div>
+        <div class="acts" id="selActs" hidden>
+          <button class="btn sm" data-act="reroot" title="Put the root on this branch">Root here</button>
+          <button class="btn sm" data-act="outgroup" title="Root with the selected taxa as outgroup">Root on outgroup</button>
+          <button class="btn sm" data-act="flip" title="Reverse the order of this node's children">Flip</button>
+          <button class="btn sm" data-act="mirror" title="Reverse order throughout this clade">Flip clade</button>
+          <button class="btn sm" data-act="ladderUp">Ladderize clade</button>
+          <button class="btn sm" data-act="collapse" title="Turn this branch into a polytomy">Collapse</button>
+          <button class="btn sm" data-act="resolve" title="Split a polytomy with zero-length branches">Resolve</button>
+          <button class="btn sm" data-act="extract" title="Keep only this clade">Keep clade</button>
+          <button class="btn sm danger" data-act="prune" title="Delete the selection">Delete</button>
+        </div>
+      </section>
+      <section class="sec">
+        <h2>Whole tree</h2>
+        <div class="acts">
+          <button class="btn sm" data-act="midpoint">Midpoint root</button>
+          <button class="btn sm" data-act="ladderAsc">Ladderize ↑</button>
+          <button class="btn sm" data-act="ladderDesc">Ladderize ↓</button>
+          <button class="btn sm" data-act="calibrate">Calibrate lengths…</button>
+        </div>
+        <div class="row"><label for="nCollapse">Collapse support below</label><input type="number" id="nCollapse" value="50" style="width:70px"><button class="btn sm" data-act="collapseWeak">Apply</button></div>
+        <div class="stats" id="stats"></div>
+      </section>
+      <section class="sec">
+        <h2>Taxa <span class="chip" id="taxaCount">0</span></h2>
+        <p class="hint">Edit names here. Amber names were read with low confidence.</p>
+        <div class="taxa" id="taxa"></div>
+      </section>
+      <section class="sec">
+        <h2>Newick</h2>
+        <textarea id="nwkOut" rows="6" readonly></textarea>
+        <div class="row"><button class="btn sm" id="bCopyNwk">Copy</button></div>
+      </section>
+    </aside>
+  </div>
+  <div class="work tg" id="workTangle" hidden>
+    <aside class="col side left">
+      <section class="sec">
+        <h2>Trees</h2>
+        <div class="slot" id="slotA">
+          <div class="slotHead"><b>Left tree</b><span class="chip" id="infoA">empty</span></div>
+          <input type="text" id="nameA" placeholder="Label, e.g. Hosts" aria-label="Left tree label">
+          <div class="acts"><button class="btn sm" data-tg="file" data-s="A">Open file</button><button class="btn sm" data-tg="paste" data-s="A">Paste</button><button class="btn sm" data-tg="current" data-s="A">Use current tree</button></div>
+        </div>
+        <div class="slot" id="slotB">
+          <div class="slotHead"><b>Right tree</b><span class="chip" id="infoB">empty</span></div>
+          <input type="text" id="nameB" placeholder="Label, e.g. Symbionts" aria-label="Right tree label">
+          <div class="acts"><button class="btn sm" data-tg="file" data-s="B">Open file</button><button class="btn sm" data-tg="paste" data-s="B">Paste</button><button class="btn sm" data-tg="current" data-s="B">Use current tree</button></div>
+        </div>
+        <div class="acts"><button class="btn sm" id="tgSwap">Swap sides</button><button class="btn sm" id="tgExample">Load example pair</button></div>
+        <input type="file" id="fTg" accept=".nwk,.newick,.tre,.tree,.treefile,.nex,.nexus,.nxs,.xml,.phyloxml,.txt,.contree,.ph,.phb,.dnd,.phy" hidden>
+      </section>
+      <section class="sec">
+        <h2>Match taxa</h2>
+        <div class="row"><label for="tgMode">Match on</label>
+          <select id="tgMode">
+            <option value="strain">Species + strain</option>
+            <option value="species">Species only</option>
+            <option value="exact">Exact label</option>
+            <option value="table">Association table</option>
+          </select></div>
+        <p class="hint" id="tgModeHint"></p>
+        <textarea id="tgTable" rows="5" hidden placeholder="left label, right label&#10;one link per line (comma or tab separated)"></textarea>
+        <ul class="notes" id="tgNotes"></ul>
+      </section>
+      <section class="sec" id="tgEdit">
+        <h2>Edit trees</h2>
+        <p class="hint" id="tgSelInfo">Load two trees first.</p>
+        <div class="acts">
+          <button class="btn sm" data-e="reroot" title="Put the root on the selected branch">Root here</button>
+          <button class="btn sm" data-e="flip" title="Reverse the order of this node's children">Flip</button>
+          <button class="btn sm" data-e="mirror" title="Reverse order throughout this clade">Flip clade</button>
+          <button class="btn sm" data-e="collapse" title="Turn this branch into a polytomy">Collapse</button>
+          <button class="btn sm danger" data-e="prune" title="Delete the selected taxon or clade">Delete</button>
+        </div>
+        <div class="row"><label>Left tree</label><button class="btn sm" data-e="midpoint" data-s="A" title="Midpoint root">Midpoint</button><button class="btn sm" data-e="ladUp" data-s="A" title="Ladderize, small clades first">Ladder ↑</button><button class="btn sm" data-e="ladDown" data-s="A" title="Ladderize, large clades first">↓</button></div>
+        <div class="row"><label>Right tree</label><button class="btn sm" data-e="midpoint" data-s="B" title="Midpoint root">Midpoint</button><button class="btn sm" data-e="ladUp" data-s="B" title="Ladderize, small clades first">Ladder ↑</button><button class="btn sm" data-e="ladDown" data-s="B" title="Ladderize, large clades first">↓</button></div>
+        <div class="row"><button class="btn sm ghost" data-e="undo">Undo edit</button></div>
+      </section>
+      <section class="sec">
+        <h2>Arrange</h2>
+        <div class="row"><label for="tgSide">Rotate</label>
+          <select id="tgSide"><option value="both">Both trees</option><option value="A">Left tree only</option><option value="B">Right tree only</option></select></div>
+        <div class="row"><button class="btn primary" id="tgUntangle" disabled>Minimise crossings</button><button class="btn sm ghost" id="tgReset" disabled title="Back to the trees as loaded">Reset trees</button></div>
+        <div class="stats" id="tgStats"></div>
+        <p class="hint">Only the order of branches at each node changes. Rooting is kept, so reroot first if needed.</p>
+      </section>
+    </aside>
+    <main class="col mid">
+      <div class="viewbar">
+        <div class="seg" id="tgLen">
+          <button data-v="phylo" aria-pressed="true">Phylograms</button>
+          <button data-v="clado" aria-pressed="false">Cladograms</button>
+        </div>
+        <span class="sep"></span>
+        <label class="ck" for="tgColor">Colour links</label>
+        <select id="tgColor"><option value="A">by left taxon</option><option value="B">by right taxon</option><option value="none">single colour</option></select>
+        <label class="ck"><input type="checkbox" id="tgSup"> Support</label>
+        <label class="ck">Text <input type="range" id="tgFont" min="7" max="18" value="11" style="width:70px"></label>
+        <label class="ck">Row <input type="range" id="tgRow" min="60" max="250" value="100" style="width:70px"></label>
+        <span class="grow"></span>
+        <button class="btn sm" id="tgSvg" disabled>Export SVG</button>
+        <button class="btn sm" id="tgCsv" disabled>Links CSV</button>
+        <button class="btn sm" id="tgNwk" disabled>Trees (Newick)</button>
+      </div>
+      <div class="canvas" id="tgCanvas">
+        <div class="empty" id="tgEmpty"><div><b>Load two trees</b>Open tree files (Newick, PHYLIP, NEXUS, PhyloXML), paste them, or send the tree you are editing. Tips are linked by matching species and strain names; one tip can link to several on the other side.</div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<dialog id="dExport"><form method="dialog" class="dlg" id="fExport">
+  <h3>Export tree</h3>
+  <div class="row"><label for="xFmt">Format</label>
+    <select id="xFmt">
+      <option value="newick">Newick (.nwk): most programs</option>
+      <option value="nexus">NEXUS (.nex): FigTree, MrBayes, PAUP*, BEAST</option>
+      <option value="phyloxml">PhyloXML (.xml): Archaeopteryx, ETE, Bio.Phylo</option>
+      <option value="csv">Node table (.csv)</option>
+      <option value="svg">Figure (.svg)</option>
+    </select></div>
+  <div class="row" id="xOpts">
+    <label class="ck"><input type="checkbox" id="xLen" checked> Branch lengths</label>
+    <label class="ck"><input type="checkbox" id="xSup" checked> Support values</label>
+    <label class="ck"><input type="checkbox" id="xUnd" checked> Spaces → underscores</label>
+    <label class="ck">Decimals <input type="number" id="xDec" min="0" max="12" placeholder="all" style="width:60px"></label>
+  </div>
+  <textarea id="xText" spellcheck="false"></textarea>
+  <p class="hint" id="xHint"></p>
+  <div class="foot"><button class="btn" value="cancel">Close</button><button class="btn" type="button" id="xCopy">Copy</button><button class="btn primary" type="button" id="xSave">Download</button></div>
+</form></dialog>
+
+<dialog id="dTgPaste"><form method="dialog" class="dlg">
+  <h3 id="tgPasteTitle">Paste a tree</h3>
+  <p class="hint">Newick / PHYLIP tree, NEXUS or PhyloXML text.</p>
+  <textarea id="tgPText" spellcheck="false"></textarea>
+  <div class="foot"><button class="btn" value="cancel">Cancel</button><button class="btn primary" type="button" id="tgPGo">Load tree</button></div>
+</form></dialog>
+
+<dialog id="dPaste"><form method="dialog" class="dlg">
+  <h3>Paste a tree</h3>
+  <p class="hint">Newick, NEXUS or PhyloXML text.</p>
+  <textarea id="pText" spellcheck="false" placeholder="((A:0.1,B:0.2)95:0.05,C:0.3);"></textarea>
+  <div class="foot"><button class="btn" value="cancel">Cancel</button><button class="btn primary" type="button" id="pGo">Load tree</button></div>
+</form></dialog>
+
+<dialog id="dCal"><form method="dialog" class="dlg">
+  <h3>Calibrate branch lengths</h3>
+  <p class="hint" id="calInfo"></p>
+  <div class="kv">
+    <label for="calBar">Scale bar value</label><input type="number" id="calBar" step="any" placeholder="e.g. 0.05">
+    <label for="calH">Root-to-tip height</label><input type="number" id="calH" step="any">
+    <label for="calF">Multiply all by</label><input type="number" id="calF" step="any" placeholder="1">
+    <label for="calU">Units</label><input type="text" id="calU" placeholder="substitutions/site">
+  </div>
+  <p class="hint">Fill one of the first three. The scale bar option works when the local tracer measured a bar.</p>
+  <div class="foot"><button class="btn" value="cancel">Cancel</button><button class="btn primary" type="button" id="calGo">Apply</button></div>
+</form></dialog>
