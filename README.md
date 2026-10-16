@@ -2,7 +2,7 @@
 
 **Turn images and PDFs of phylogenetic trees into editable tree files, and compare two trees as a tanglegram, all in the browser.**
 
-TreeScan reads a published tree figure (PNG, JPEG, WebP, screenshot or PDF page) or standard tree file formats (Newick, NEXUS, PhyloXML)and reconstructs the tree, including taxon names, branch lengths and support values. You can then edit it and export it in standard formats (Newick, NEXUS, PhyloXML) that other phylogenetics programs can open. A second workspace draws **tanglegrams** for co-phylogenetic comparisons, such as host–symbiont, host–parasite or gene–species trees, and rotates branches to minimise crossing links.
+TreeScan reads a published tree figure (PNG, JPEG, WebP, screenshot, PDF page) or standard tree file formats (Newick, NEXUS, PhyloXML) and reconstructs the tree, including taxon names, branch lengths and support values. You can then edit it and export it in standard formats (Newick, NEXUS, PhyloXML) that other phylogenetics programs can open. A second workspace draws **tanglegrams** for co-phylogenetic comparisons, such as host–symbiont, host–parasite or gene–species trees, and rotates branches to minimise crossing links.
 
 TreeScan is a single HTML file. It needs no installation and no server, and runs in any modern browser.
 
