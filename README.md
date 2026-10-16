@@ -277,7 +277,7 @@ If TreeScan helps your work, please cite this repository:
 
 ```
 Kwong Lab (2026). TreeScan: reading phylogenetic tree figures and drawing tanglegrams in the browser.
-GitHub repository: https://github.com/<your-account>/treescan
+GitHub repository: https://github.com/wkwong-1/treescan
 ```
 
 ## License
